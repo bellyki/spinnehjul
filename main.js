@@ -71,10 +71,16 @@ const addName = () => {
   let amount = 1;
 
 
-  const match = text.match(/^(.+?)\s*[xX]\s*(\d+)$/);
-  if (match) {
-    name = match[1].trim();
-    amount = parseInt(match[2]);
+  const nameFirst = text.match(/^(.+?)\s*[xX×]\s*(\d+)$/);
+
+  const numberFirst = text.match(/^[xX×]\s*(\d+)\s+(.+)$/);
+
+  if (nameFirst) {
+    name = nameFirst[1].trim();
+    amount = parseInt(nameFirst[2]);
+  } else if (numberFirst) {
+    name = numberFirst[2].trim();
+    amount = parseInt(numberFirst[1]);
   }
 
   for (let i = 0; i < amount; i++) {

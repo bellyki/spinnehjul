@@ -7,6 +7,10 @@ const nameInput = document.getElementById("name-input");
 const addBtn = document.getElementById("add-btn");
 
 
+const SPIN_SECONDS = 8; 
+const EXTRA_SPINS = 10; 
+
+
 const names = [];
 
 
@@ -35,6 +39,7 @@ let myChart = new Chart(wheel, {
   options: {
     responsive: true,
     animation: { duration: 0 },
+    rotation: 0,
     plugins: {
       tooltip: false,
       legend: {
@@ -59,9 +64,23 @@ const updateWheel = () => {
 
 
 const addName = () => {
-  const newName = nameInput.value.trim();
-  if (newName === "") return;
-  names.push(newName);
+  const text = nameInput.value.trim();
+  if (text === "") return;
+
+  let name = text;
+  let amount = 1;
+
+
+  const match = text.match(/^(.+?)\s*[xX]\s*(\d+)$/);
+  if (match) {
+    name = match[1].trim();
+    amount = parseInt(match[2]);
+  }
+
+  for (let i = 0; i < amount; i++) {
+    names.push(name);
+  }
+
   nameInput.value = "";
   nameInput.focus();
   updateWheel();
@@ -112,15 +131,12 @@ const valueGenerator = (angleValue) => {
   setTimeout(() => dino.classList.remove("dancing"), 6000);
 };
 
-let count = 0;
-let resultValue = 101;
-
 
 spinBtn.addEventListener("click", () => {
-
+ 
   removeWinner();
 
-
+ 
   if (names.length === 0) {
     finalValue.innerHTML = `<p>Legg til navn først!</p>`;
     return;
@@ -130,19 +146,27 @@ spinBtn.addEventListener("click", () => {
   cheerSound.pause();
   dino.classList.remove("dancing");
   finalValue.innerHTML = `<p>LYKKE TIL!!</p>`;
-  let randomDegree = Math.floor(Math.random() * 356);
-  let rotationInterval = window.setInterval(() => {
-    myChart.options.rotation = myChart.options.rotation + resultValue;
+
+ 
+  const randomDegree = Math.floor(Math.random() * 360);
+  const startRotation = myChart.options.rotation % 360;
+  const totalRotation = EXTRA_SPINS * 360 + ((randomDegree - startRotation + 360) % 360);
+  const startTime = performance.now();
+
+  
+  const animate = (now) => {
+    const progress = Math.min((now - startTime) / (SPIN_SECONDS * 1000), 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    myChart.options.rotation = startRotation + totalRotation * eased;
     myChart.update();
-    if (myChart.options.rotation >= 360) {
-      count += 1;
-      resultValue -= 5;
-      myChart.options.rotation = 0;
-    } else if (count > 15 && myChart.options.rotation == randomDegree) {
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      myChart.options.rotation = randomDegree;
+      myChart.update();
       valueGenerator(randomDegree);
-      clearInterval(rotationInterval);
-      count = 0;
-      resultValue = 101;
     }
-  }, 10);
+  };
+  requestAnimationFrame(animate);
 });

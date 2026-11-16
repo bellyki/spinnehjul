@@ -7,7 +7,7 @@ const nameInput = document.getElementById("name-input");
 const addBtn = document.getElementById("add-btn");
 
 
-const SPIN_SECONDS = 14; 
+const SPIN_SECONDS = 20; 
 const EXTRA_SPINS = 10; 
 
 
